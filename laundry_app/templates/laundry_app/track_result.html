@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Track Order - {{ order.e_invoice_number }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <div class="max-w-4xl mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6">Status Cucian - {{ order.e_invoice_number }}</h1>
+        <div class="bg-white p-6 rounded shadow">
+            <p><strong>Nama:</strong> {{ order.name }}</p>
+            <p><strong>Alamat:</strong> {{ order.address }}</p>
+            <p><strong>Whatsapp:</strong> {{ order.whatsapp }}</p>
+            <p><strong>Jenis Laundry:</strong> {{ order.get_laundry_type_display }}</p>
+            <p><strong>Tanggal Penjemputan:</strong> {{ order.pickup_date }}</p>
+            <p><strong>Jam Penjemputan:</strong> {{ order.pickup_time }}</p>
+            <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+            <p><strong>Dibuat pada:</strong> {{ order.created_at }}</p>
+        </div>
+        <a href="{% url 'home' %}" class="inline-block mt-6 text-purple-600 hover:underline">Kembali ke Beranda</a>
+    </div>
+</body>
+</html>
