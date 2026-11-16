@@ -1,75 +1,81 @@
+# Chingu Laundry
 
-Built by https://www.blackbox.ai
+A small Django web app for a laundry shop: customers reserve a pickup and track their order with an **E-Faktur** number, staff see all orders on a dashboard. Built for Indonesian laundry businesses — the 10 service types (kiloan, cuci & setrika, dry cleaning, green dry cleaning, laundry sepatu, tas, karpet, gorden, kulit, lainnya) and WhatsApp contact reflect how a real local laundry shop works.
 
----
-
-# Laundry Project
-
-## Project Overview
-Laundry Project is a Django-based web application designed to streamline laundry management. It provides functionalities to manage laundry tasks, track orders, and enhance service delivery. The project is designed with maintainability and scalability in mind, making it a solid base for further enhancements.
-
-## Installation
-To install the Laundry Project, follow these steps:
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/laundry_project.git
-   cd laundry_project
-   ```
-
-2. **Set up a virtual environment** (recommended):
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-3. **Install the required packages**:
-   Make sure you have `pip` installed, then run:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run database migrations**:
-   ```bash
-   python manage.py migrate
-   ```
-
-5. **Create a superuser** (optional, for access to the admin panel):
-   ```bash
-   python manage.py createsuperuser
-   ```
-
-6. **Start the development server**:
-   ```bash
-   python manage.py runserver
-   ```
-
-## Usage
-Once the server is running, navigate to `http://127.0.0.1:8000/` in your web browser to access the application. Use the superuser credentials created earlier to log in to the admin panel.
+> Note: the "E-Faktur" here is a tracking code, not a bill — orders have no price, weight, or payment fields (yet).
 
 ## Features
-- User authentication and admin panel.
-- Management of laundry orders.
-- Ability to track the status of each order.
-- Customizable settings for different laundry services.
 
-## Dependencies
-The project does not explicitly include a `requirements.txt` or `package.json`. However, here are common dependencies for a Django project:
-- Django
+- **Pickup reservation** (`/`) — customer fills in name, address, WhatsApp, laundry type, pickup date/time, and gets an auto-generated E-Faktur number (`EF` + 8 random letters/digits, e.g. `EF7K2P9QX4`). Server-side validation: WhatsApp must be 9–15 digits, pickup date can't be in the past.
+- **Order tracking** (`/track/`) — enter an E-Faktur number to see the service, pickup slot, and status (pending → in progress → completed/cancelled). Address and WhatsApp are masked on this public page.
+- **Staff dashboard** (`/dashboard/`) — table of all orders, newest first. Login + staff account required.
+- **Django admin** (`/admin/`) — the place to change order status and manage orders.
+- **Demo data** — `python manage.py seed_demo` creates 5 clearly-fake demo orders so the dashboard isn't empty on first run.
 
-To check requirements, ensure you have the necessary packages installed using the provided `pip install -r requirements.txt`.
+## Quickstart
 
-## Project Structure
-```plaintext
-laundry_project/
-│
-├── manage.py               # Django's command-line utility for administrative tasks
-├── laundry_project/        # Main project directory
-│   ├── __init__.py
-│   ├── settings.py         # Configuration settings for the Django project
-│   ├── urls.py             # URL routing for the Django application
-│   └── wsgi.py             # WSGI configuration for deploying the project
-└── ...
+Requires **Python 3.10+** (Django 5.2 needs it). No other system dependencies; the database is SQLite, the frontend is Tailwind via CDN (no build step).
+
+```bash
+git clone https://github.com/iambillgates/laundry-management-system.git
+cd laundry-management-system
+
+python -m venv venv
+source venv/bin/activate   # On Windows: venv\Scripts\activate
+
+pip install -r requirements.txt
+
+cp .env.example .env
+# Edit .env and set a real SECRET_KEY. Generate one with:
+#   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+# The app refuses to start without SECRET_KEY set.
+
+python manage.py migrate
+
+# Staff account for the dashboard (/dashboard/) and admin (/admin/):
+python manage.py createsuperuser
+
+# Optional demo orders (5 fake orders across statuses):
+python manage.py seed_demo
+
+python manage.py runserver
+# Open http://127.0.0.1:8000/
 ```
 
-Feel free to extend this README with additional sections or information as needed!
+## Configuration
+
+All settings come from environment variables (see `.env.example`); nothing secret is hardcoded:
+
+| Variable | Required | Default | Notes |
+|---|---|---|---|
+| `SECRET_KEY` | Yes | — | Long random string. The app won't start without it. |
+| `DEBUG` | No | `False` | Set `True` only for local development. |
+| `ALLOWED_HOSTS` | No | `localhost,127.0.0.1` | Comma-separated hostnames the app may serve. |
+
+## Project structure
+
+```plaintext
+laundry-management-system/
+├── manage.py
+├── requirements.txt            # Django==5.2.3 (the only dependency)
+├── .env.example                # Copy to .env and fill in (never commit .env)
+├── laundry_project/            # Django project settings + root URLs
+│   ├── settings.py
+│   ├── urls.py                 # /admin/ + includes laundry_app.urls
+│   ├── wsgi.py
+│   └── asgi.py
+└── laundry_app/                # The laundry app
+    ├── models.py               # LaundryOrder: E-Faktur, service types, status
+    ├── views.py                # home, track_order (masked), dashboard (staff-only)
+    ├── forms.py                # Reservation + tracking forms with validation
+    ├── urls.py                 # / , /track/, /dashboard/
+    ├── admin.py
+    ├── templates/laundry_app/  # home.html, track_result.html, dashboard.html
+    ├── migrations/
+    └── management/commands/
+        └── seed_demo.py        # Creates 5 demo orders (idempotent)
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
